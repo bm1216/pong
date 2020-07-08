@@ -1,9 +1,6 @@
 canvas = document.getElementById('pong');
 var ctx = canvas.getContext('2d');
 
-console.log(ctx)
-console.log(canvas)
-
 const user = {
   width: 10,
   height: 50,
@@ -38,14 +35,14 @@ const net = {
 
 const userScore = {
   text: "0",
-  font: "40px Comic Sans",
+  font: "60px Comic Sans",
   x: canvas.width/4,
   y: canvas.height/5,
 }
 
 const oppScore = {
   text: "0",
-  font: "40px Comic Sans",
+  font: "60px Comic Sans",
   x: canvas.width*(3/4),
   y: canvas.height/5,
 }
@@ -56,37 +53,63 @@ const ball = {
   r: 10,
 }
 
+console.log(ctx)
+console.log(canvas)
+
+document.addEventListener("keydown", (event) => {
+  switch (event.code) {
+    case "ArrowUp": {
+      if (user.y > 0) {
+        user.y = user.y - 5
+      }
+      return
+    }
+    case "ArrowDown": {
+      if (user.y + user.height < canvas.height) {
+        user.y = user.y + 5
+      }
+      return
+    }
+    default: {
+
+    }
+  }
+})
 
 function drawNet() {
-  let i = 0
   const spacing = 10
-  while (net.y <= canvas.height) {
-    drawRect(net)
-    net.y = net.y + net.height + spacing
+  let i = net.y
+  while (i <= canvas.height) {
+    drawRect(net.x, i, net.width, net.height, net.color)
+    i = i + net.height + spacing
   }
 }
    
-function drawRect(obj) {
-  console.log("Drawing")
-  ctx.fillStyle = obj.color;
-  ctx.fillRect(obj.x, obj.y, obj.width, obj.height)
+function drawRect(x, y, width, height, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, width, height)
 }
 
-function drawScore(obj) {
-  ctx.font = obj.font;
-  ctx.fillText(obj.text, obj.x, obj.y)
+function drawScore(x, y, text, font) {
+  ctx.font = font;
+  ctx.fillText(text, x, y)
 }
 
-function drawBall(obj) {
+function drawBall(x, y, radius) {
   ctx.beginPath();
-  ctx.arc(obj.x, obj.y, obj.r, 0, Math.PI*2);
+  ctx.arc(x, y, radius, 0, Math.PI*2);
   ctx.fill();
 }
 
-drawRect(box)
-drawRect(user)
-drawRect(op)
-drawNet()
-drawScore(userScore)
-drawScore(oppScore)
-drawBall(ball)
+
+const update = (() => {setInterval(render, 10)})()
+function render() {
+  // console.log("rendering...")
+  drawRect(box.x, box.y, box.width, box.height, box.color);
+  drawRect(user.x, user.y, user.width, user.height, user.color);
+  drawRect(op.x, op.y, op.width, op.height, op.color);
+  drawNet(); 
+  drawScore(userScore.x, userScore.y, userScore.text, userScore.font);
+  drawScore(oppScore.x, oppScore.y, oppScore.text, oppScore.font);
+  drawBall(ball.x, ball.y, ball.r);
+}
