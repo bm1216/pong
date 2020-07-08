@@ -1,9 +1,11 @@
 canvas = document.getElementById('pong');
 var ctx = canvas.getContext('2d');
+const paddleMoveLength = 15;
+var hasGameEnded = false;
 
 const user = {
   width: 10,
-  height: 50,
+  height: 70,
   x: 0,
   y: canvas.height/2 - 50/2,
   color: "#ffffff"
@@ -11,7 +13,7 @@ const user = {
 
 const op = {
   width: 10,
-  height: 50,
+  height: 70,
   x: canvas.width - 10,
   y: canvas.height/2 - 50/2,
   color: "#ffffff"
@@ -34,47 +36,72 @@ const net = {
 }
 
 const userScore = {
-  text: "0",
+  score: 0,
   font: "60px Comic Sans",
   x: canvas.width/4,
   y: canvas.height/5,
 }
 
 const oppScore = {
-  text: "0",
+  score: 0,
   font: "60px Comic Sans",
   x: canvas.width*(3/4),
   y: canvas.height/5,
 }
 
 const ball = {
-  x: canvas.width/2 - 50,
+  x: canvas.width/2,
   y: canvas.height/2,
-  r: 10,
+  radius: 10,
+  speed: 5,
+  trajectoryX: -5,
+  trajectoryY: 5,
 }
-
-console.log(ctx)
-console.log(canvas)
 
 document.addEventListener("keydown", (event) => {
   switch (event.code) {
     case "ArrowUp": {
-      if (user.y > 0) {
-        user.y = user.y - 5
+      if (op.y > 0) {
+        op.y = op.y - paddleMoveLength
       }
       return
     }
     case "ArrowDown": {
-      if (user.y + user.height < canvas.height) {
-        user.y = user.y + 5
+      if (op.y + op.height < canvas.height) {
+        op.y = op.y + paddleMoveLength
+      
       }
       return
+    }
+    case "KeyW": {
+      if (user.y > 0) {
+        user.y = user.y - paddleMoveLength
+      }
+      return
+    }
+    case "KeyS": {
+      if (user.y + user.height < canvas.height) {
+        user.y = user.y + paddleMoveLength
+      
+      }
     }
     default: {
 
     }
   }
 })
+
+
+var userTurn = true
+
+var ballPath = Math.random
+
+function initializeBall() {
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI*2);
+  ctx.fill();
+}
+
 
 function drawNet() {
   const spacing = 10
@@ -90,9 +117,9 @@ function drawRect(x, y, width, height, color) {
   ctx.fillRect(x, y, width, height)
 }
 
-function drawScore(x, y, text, font) {
+function drawScore(x, y, score, font) {
   ctx.font = font;
-  ctx.fillText(text, x, y)
+  ctx.fillText(score.toString(), x, y)
 }
 
 function drawBall(x, y, radius) {
@@ -101,15 +128,82 @@ function drawBall(x, y, radius) {
   ctx.fill();
 }
 
+const framePerSecond = 60
 
-const update = (() => {setInterval(render, 10)})()
+function updateState() {
+  // Update ball position +1
+  // Update paddle position ? +1
+  // Update score +1
+  // Check win condition
+  ball.x += ball.trajectoryX;
+  ball.y += ball.trajectoryY;
+
+  if (ball.x - ball.radius <= 0) {
+    // When ball touches left wall (score)
+    oppScore.score++;
+    resetBall()
+  }
+
+  if (ball.x + ball.radius >= canvas.width) {
+    // When ball touches right wall (score)
+    userScore.score++;
+    resetBall()
+  }
+  
+  if (userScore.score == 10 || oppScore.score == 10) {
+    hasGameEnded = true
+  }
+
+  if (user.x < ball.x - ball.radius && ball.x - ball.radius <= user.x+user.width && user.y < ball.y && ball.y <= user.y + user.height) {
+    ball.trajectoryX = -ball.trajectoryX;
+  }
+
+  if (op.x < ball.x + ball.radius && ball.x + ball.radius <= op.x+op.width && op.y < ball.y && ball.y <= op.y + op.height) {
+    ball.trajectoryX = -ball.trajectoryX;
+  }
+
+  if (ball.y + ball.radius >= canvas.height || ball.y - ball.radius <= 0) {
+    // When ball touches bottom, (reflect)
+    ball.trajectoryY = -ball.trajectoryY
+  }
+}
+
+function resetBall() {
+  ball.x = canvas.width/2
+  ball.y = canvas.height/2
+  ball.trajectoryX = -5
+  ball.trajectoryY = 5
+}
+
 function render() {
   // console.log("rendering...")
   drawRect(box.x, box.y, box.width, box.height, box.color);
   drawRect(user.x, user.y, user.width, user.height, user.color);
   drawRect(op.x, op.y, op.width, op.height, op.color);
   drawNet(); 
-  drawScore(userScore.x, userScore.y, userScore.text, userScore.font);
-  drawScore(oppScore.x, oppScore.y, oppScore.text, oppScore.font);
-  drawBall(ball.x, ball.y, ball.r);
+  drawScore(userScore.x, userScore.y, userScore.score, userScore.font);
+  drawScore(oppScore.x, oppScore.y, oppScore.score, oppScore.font);
+  drawBall(ball.x, ball.y, ball.radius);
 }
+
+const play = (() => {
+  updateState();
+  render();
+  if (hasGameEnded) {
+    clearInterval(myGame)
+
+    if (userScore.score >= 10) {
+      ctx.font = "35px Comic Sans";
+      ctx.fillText("Winner", userScore.x, canvas.height/2);
+    }
+  
+    if (oppScore.score >= 10) {
+      ctx.font = "35px Arial";
+      ctx.fillText("Winner", oppScore.x - 40,  canvas.height/2);
+    }
+
+  }
+})
+
+myGame = setInterval(play, 1000/framePerSecond)
+
