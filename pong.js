@@ -1,0 +1,3 @@
+
+canvas = document.getElementById('pong');
+
