@@ -1,7 +1,17 @@
+singleButton = document.getElementById('single')
+doubleButton = document.getElementById('double')
 canvas = document.getElementById('pong');
+const framePerSecond = 60
+const userPaddleMoveLength = 6;
+var oppPaddleMoveLength = 3;
 var ctx = canvas.getContext('2d');
-const paddleMoveLength = 10;
+var useAI = false;
 var hasGameEnded = false;
+var userUp = false;
+var userDown = false;
+var opUp = false;
+var opDown = false;
+
 
 const user = {
   width: 10,
@@ -58,70 +68,90 @@ const ball = {
   trajectoryY: 5,
 }
 
-var userUp = false;
-var userDown = false;
-var opUp = false;
-var opDown = false;
 
-document.addEventListener("keydown", (event) => {
-  switch (event.code) {
-    case "ArrowUp": {
-      opUp = true;
-      return;
-    }
-    case "ArrowDown": {
-      opDown = true;
-    }
-    default: {
+function useSinglePlayer() {
+  singleButton.style.display = "none"
+  doubleButton.style.display = "none"
+  canvas.hidden = false
+  useAI = true
+  setEventListeners()
+  myGame = setInterval(play, 1000/framePerSecond)
 
-    }
-  }
-})
+}
 
-document.addEventListener("keydown", (event) => {
-  switch(event.code) {
-    case "KeyW": {
-      userUp = true;
-      return;
-    }
-    case "KeyS": {
-      userDown = true;
-    }
-    default: {
+function useDoublePlayer() {
+  singleButton.style.display = "none"
+  doubleButton.style.display = "none"
+  canvas.hidden = false
+  setEventListeners()
+  myGame = setInterval(play, 1000/framePerSecond)
+}
 
-    }
-  }
-})
-
-document.addEventListener("keyup", (event) => {
-  switch(event.code) {
-    case "ArrowUp": {
-      opUp = false;
-      return
-    }
-    case "ArrowDown": {
-      opDown = false;
-    }
-    default: {
-
-    }
-  }
-})
-
-document.addEventListener("keyup", (event) => {
-  switch(event.code) {
-    case "KeyW": {
-      userUp = false;
-      return
-    }
-    case "KeyS": {
-      userDown = false;
-    }
-    default: {
+// console.log(useAI)
+function setEventListeners() {
+  document.addEventListener("keydown", (event) => {
+    switch(event.code) {
+      case "KeyW": {
+        userUp = true;
+        return;
+      }
+      case "KeyS": {
+        userDown = true;
+      }
+      default: {
   
+      }
     }
-  } 
-})
+  })
+  
+  document.addEventListener("keyup", (event) => {
+    switch(event.code) {
+      case "KeyW": {
+        userUp = false;
+        return
+      }
+      case "KeyS": {
+        userDown = false;
+      }
+      default: {
+    
+      }
+    } 
+  })
+
+  if (!useAI) {
+    document.addEventListener("keydown", (event) => {
+      switch (event.code) {
+        case "ArrowUp": {
+          opUp = true;
+          return;
+        }
+        case "ArrowDown": {
+          opDown = true;
+        }
+        default: {
+    
+        }
+      }
+    })  
+    
+    document.addEventListener("keyup", (event) => {
+      switch(event.code) {
+        case "ArrowUp": {
+          opUp = false;
+          return
+        }
+        case "ArrowDown": {
+          opDown = false;
+        }
+        default: {
+    
+        }
+      }
+    })
+  }
+}
+
 
 
 function initializeBall() {
@@ -129,7 +159,6 @@ function initializeBall() {
   ctx.arc(x, y, radius, 0, Math.PI*2);
   ctx.fill();
 }
-
 
 function drawNet() {
   const spacing = 10
@@ -173,31 +202,43 @@ function collide(ball, player) {
       player.top < ball.bottom)
 }
 
-function movePaddle() {
+function movePaddle() {  
   if (userUp) {
     if (user.y > 0) {
-      user.y = user.y - paddleMoveLength
+      user.y = user.y - userPaddleMoveLength
     }
   } else if (userDown) {
     if (user.y + user.height < canvas.height) {
-      user.y = user.y + paddleMoveLength
-    
+      user.y = user.y + userPaddleMoveLength   
     }
   }
 
+  if (useAI) {
+    if (ball.trajectoryX < 0 || ball.x < canvas.width/2) {
+      return;
+    }
+    if (op.y + op.height/2 < ball.y ) {
+      opDown = true;
+      opUp = false
+    } else if (op.y + op.height/2 > ball.y) {
+      opUp = true;
+      opDown = false;
+    }    
+  }
+
+  // console.log(opUp)sw
   if (opUp) {
     if (op.y > 0) {
-      op.y = op.y - paddleMoveLength
+      op.y = op.y - oppPaddleMoveLength
     }
   } else if (opDown) {
     if (op.y + op.height < canvas.height) {
-      op.y = op.y + paddleMoveLength
+      op.y = op.y + oppPaddleMoveLength
     
     }
   }
 }
 
-const framePerSecond = 60
 
 function updateState() {
   // Update ball position +1
@@ -217,6 +258,10 @@ function updateState() {
     ball.trajectoryX = direction * Math.cos(collisionPoint*Math.PI/4) * ball.speed
     ball.trajectoryY = direction * Math.sin(collisionPoint*Math.PI/4) * ball.speed
     ball.speed += 0.1
+    if (useAI) {
+      opUp = false
+      opDown = false
+    }
   }
 
   if (ball.x - ball.radius < 0) {
@@ -246,6 +291,7 @@ function resetBall(isUserTurn) {
   ball.y = canvas.height/2
   ball.trajectoryX = (isUserTurn ? -5 : 5)
   ball.trajectoryY = 5
+  ball.speed = 5
 }
 
 function render() {
@@ -278,5 +324,4 @@ const play = (() => {
   }
 })
 
-myGame = setInterval(play, 1000/framePerSecond)
 
