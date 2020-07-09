@@ -11,7 +11,10 @@ var userUp = false;
 var userDown = false;
 var opUp = false;
 var opDown = false;
-
+var hitSound = new Audio('sounds/hit.mp3')
+var wallSound = new Audio('sounds/wall.mp3')
+var oppScoreSound = new Audio('sounds/userScore.mp3')
+var userScoreSound = new Audio('sounds/oppScore.mp3')
 
 const user = {
   width: 10,
@@ -234,9 +237,9 @@ function movePaddle() {
   } else if (opDown) {
     if (op.y + op.height < canvas.height) {
       op.y = op.y + oppPaddleMoveLength
-    
     }
   }
+
 }
 
 
@@ -253,6 +256,7 @@ function updateState() {
   const player = (ball.x > canvas.width/2 ? op : user)  
   if (collide(ball, player)) {
     // console.log("collision detected")
+    hitSound.play()
     const direction = (ball.x > canvas.width/2 ? -1 : 1)
     collisionPoint = ((ball.y) - (player.y + player.height/2))/(player.height/2); //Ranging from -1 to 1
     ball.trajectoryX = direction * Math.cos(collisionPoint*Math.PI/4) * ball.speed
@@ -266,10 +270,17 @@ function updateState() {
 
   if (ball.x - ball.radius < 0) {
     // When ball touches left wall (opp score)
+    if (useAI) {
+      oppScoreSound.play()
+    } else {
+      userScoreSound.play()
+    }
+    
     oppScore.score++;
     resetBall(false)
   } else if (ball.x + ball.radius > canvas.width) {
     // When ball touches right wall (user score)
+    userScoreSound.play()
     userScore.score++;
     resetBall(true)
   }
@@ -281,7 +292,8 @@ function updateState() {
 
 
   if (ball.y + ball.radius >= canvas.height || ball.y - ball.radius <= 0) {
-    // When ball touches bottom, (reflect)
+    // When ball touches bottom or top, (reflect)
+    wallSound.play()
     ball.trajectoryY = -ball.trajectoryY
   }
 }
