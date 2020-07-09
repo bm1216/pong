@@ -1,6 +1,6 @@
 canvas = document.getElementById('pong');
 var ctx = canvas.getContext('2d');
-const paddleMoveLength = 15;
+const paddleMoveLength = 10;
 var hasGameEnded = false;
 
 const user = {
@@ -58,37 +58,69 @@ const ball = {
   trajectoryY: 5,
 }
 
+var userUp = false;
+var userDown = false;
+var opUp = false;
+var opDown = false;
+
 document.addEventListener("keydown", (event) => {
   switch (event.code) {
     case "ArrowUp": {
-      if (op.y > 0) {
-        op.y = op.y - paddleMoveLength
-      }
-      return
+      opUp = true;
+      return;
     }
     case "ArrowDown": {
-      if (op.y + op.height < canvas.height) {
-        op.y = op.y + paddleMoveLength
-      
-      }
-      return
-    }
-    case "KeyW": {
-      if (user.y > 0) {
-        user.y = user.y - paddleMoveLength
-      }
-      return
-    }
-    case "KeyS": {
-      if (user.y + user.height < canvas.height) {
-        user.y = user.y + paddleMoveLength
-      
-      }
+      opDown = true;
     }
     default: {
 
     }
   }
+})
+
+document.addEventListener("keydown", (event) => {
+  switch(event.code) {
+    case "KeyW": {
+      userUp = true;
+      return;
+    }
+    case "KeyS": {
+      userDown = true;
+    }
+    default: {
+
+    }
+  }
+})
+
+document.addEventListener("keyup", (event) => {
+  switch(event.code) {
+    case "ArrowUp": {
+      opUp = false;
+      return
+    }
+    case "ArrowDown": {
+      opDown = false;
+    }
+    default: {
+
+    }
+  }
+})
+
+document.addEventListener("keyup", (event) => {
+  switch(event.code) {
+    case "KeyW": {
+      userUp = false;
+      return
+    }
+    case "KeyS": {
+      userDown = false;
+    }
+    default: {
+  
+    }
+  } 
 })
 
 
@@ -141,6 +173,30 @@ function collide(ball, player) {
       player.top < ball.bottom)
 }
 
+function movePaddle() {
+  if (userUp) {
+    if (user.y > 0) {
+      user.y = user.y - paddleMoveLength
+    }
+  } else if (userDown) {
+    if (user.y + user.height < canvas.height) {
+      user.y = user.y + paddleMoveLength
+    
+    }
+  }
+
+  if (opUp) {
+    if (op.y > 0) {
+      op.y = op.y - paddleMoveLength
+    }
+  } else if (opDown) {
+    if (op.y + op.height < canvas.height) {
+      op.y = op.y + paddleMoveLength
+    
+    }
+  }
+}
+
 const framePerSecond = 60
 
 function updateState() {
@@ -150,6 +206,8 @@ function updateState() {
   // Check win condition
   ball.x += ball.trajectoryX;
   ball.y += ball.trajectoryY;
+
+  movePaddle()
 
   const player = (ball.x > canvas.width/2 ? op : user)  
   if (collide(ball, player)) {
@@ -165,9 +223,7 @@ function updateState() {
     // When ball touches left wall (opp score)
     oppScore.score++;
     resetBall(false)
-  }
-
-  if (ball.x + ball.radius > canvas.width) {
+  } else if (ball.x + ball.radius > canvas.width) {
     // When ball touches right wall (user score)
     userScore.score++;
     resetBall(true)
