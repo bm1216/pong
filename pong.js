@@ -5,7 +5,7 @@ var hasGameEnded = false;
 
 const user = {
   width: 10,
-  height: 70,
+  height: 100,
   x: 0,
   y: canvas.height/2 - 50/2,
   color: "#ffffff"
@@ -13,12 +13,11 @@ const user = {
 
 const op = {
   width: 10,
-  height: 70,
+  height: 100,
   x: canvas.width - 10,
   y: canvas.height/2 - 50/2,
   color: "#ffffff"
 }
-
 const box = {
   x: 0,
   y: 0,
@@ -26,6 +25,7 @@ const box = {
   height: canvas.height,
   color: "#000000"
 }
+
 
 const net = {
   x: canvas.width/2 - 5/2,
@@ -92,10 +92,6 @@ document.addEventListener("keydown", (event) => {
 })
 
 
-var userTurn = true
-
-var ballPath = Math.random
-
 function initializeBall() {
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI*2);
@@ -128,6 +124,23 @@ function drawBall(x, y, radius) {
   ctx.fill();
 }
 
+function collide(ball, player) {
+  ball.top = ball.y - ball.radius;
+  ball.bottom = ball.y + ball.radius;
+  ball.left = ball.x - ball.radius;
+  ball.right = ball.x + ball.radius
+
+  player.top = player.y;
+  player.bottom = player.y + player.height;
+  player.left = player.x;
+  player.right = player.x + player.width;
+
+  return (ball.right > player.left &&
+      ball.left < player.right && 
+      player.bottom > ball.top &&
+      player.top < ball.bottom)
+}
+
 const framePerSecond = 60
 
 function updateState() {
@@ -138,29 +151,33 @@ function updateState() {
   ball.x += ball.trajectoryX;
   ball.y += ball.trajectoryY;
 
-  if (ball.x - ball.radius <= 0) {
-    // When ball touches left wall (score)
-    oppScore.score++;
-    resetBall()
+  const player = (ball.x > canvas.width/2 ? op : user)  
+  if (collide(ball, player)) {
+    // console.log("collision detected")
+    const direction = (ball.x > canvas.width/2 ? -1 : 1)
+    collisionPoint = ((ball.y) - (player.y + player.height/2))/(player.height/2); //Ranging from -1 to 1
+    ball.trajectoryX = direction * Math.cos(collisionPoint*Math.PI/4) * ball.speed
+    ball.trajectoryY = direction * Math.sin(collisionPoint*Math.PI/4) * ball.speed
+    ball.speed += 0.1
   }
 
-  if (ball.x + ball.radius >= canvas.width) {
-    // When ball touches right wall (score)
-    userScore.score++;
-    resetBall()
+  if (ball.x - ball.radius < 0) {
+    // When ball touches left wall (opp score)
+    oppScore.score++;
+    resetBall(false)
   }
-  
+
+  if (ball.x + ball.radius > canvas.width) {
+    // When ball touches right wall (user score)
+    userScore.score++;
+    resetBall(true)
+  }
+
+
   if (userScore.score == 10 || oppScore.score == 10) {
     hasGameEnded = true
   }
 
-  if (user.x < ball.x - ball.radius && ball.x - ball.radius <= user.x+user.width && user.y < ball.y && ball.y <= user.y + user.height) {
-    ball.trajectoryX = -ball.trajectoryX;
-  }
-
-  if (op.x < ball.x + ball.radius && ball.x + ball.radius <= op.x+op.width && op.y < ball.y && ball.y <= op.y + op.height) {
-    ball.trajectoryX = -ball.trajectoryX;
-  }
 
   if (ball.y + ball.radius >= canvas.height || ball.y - ball.radius <= 0) {
     // When ball touches bottom, (reflect)
@@ -168,10 +185,10 @@ function updateState() {
   }
 }
 
-function resetBall() {
+function resetBall(isUserTurn) {
   ball.x = canvas.width/2
   ball.y = canvas.height/2
-  ball.trajectoryX = -5
+  ball.trajectoryX = (isUserTurn ? -5 : 5)
   ball.trajectoryY = 5
 }
 
