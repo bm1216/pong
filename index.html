@@ -7,6 +7,11 @@
         body{
             background-color: dimgray;
             font-family: 'Press Start 2P', cursive;
+            display: flex;
+            flex-flow: column wrap;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         #pong{
             border: 2px solid #FFF;
@@ -16,13 +21,26 @@
             right:0;
             left:0;
             bottom:0;
+            display: none
+        }  
+        #single{
+          font-family: 'Press Start 2P', cursive;
+          padding: 5px;
+          border-radius: 10px;
+          margin: 10px;
+        }
+        #double{
+          font-family: 'Press Start 2P', cursive;
+          padding: 5px;
+          border-radius: 10px;
+          margin: 10px;
         }
     </style>
 </head>
 <body>
   <button id="single" onclick="useSinglePlayer()">Play Single Player!</button>
   <button id="double" onclick="useDoublePlayer()">Play with a friend!</button>
-  <canvas id="pong" width="600" height="400" hidden=true></canvas>
+  <canvas id="pong" width="600" height="400"></canvas>
   <script src="pong.js"></script>
 </body>
 </html>

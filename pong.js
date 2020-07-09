@@ -72,7 +72,7 @@ const ball = {
 function useSinglePlayer() {
   singleButton.style.display = "none"
   doubleButton.style.display = "none"
-  canvas.hidden = false
+  canvas.style.display = "block"
   useAI = true
   setEventListeners()
   myGame = setInterval(play, 1000/framePerSecond)
@@ -82,7 +82,7 @@ function useSinglePlayer() {
 function useDoublePlayer() {
   singleButton.style.display = "none"
   doubleButton.style.display = "none"
-  canvas.hidden = false
+  canvas.style.display = "block"
   setEventListeners()
   myGame = setInterval(play, 1000/framePerSecond)
 }
@@ -151,7 +151,6 @@ function setEventListeners() {
     })
   }
 }
-
 
 
 function initializeBall() {
@@ -313,7 +312,7 @@ const play = (() => {
 
     if (userScore.score >= 10) {
       ctx.font = "35px Comic Sans";
-      ctx.fillText("Winner", userScore.x, canvas.height/2);
+      ctx.fillText("Winner", userScore.x - 40, canvas.height/2);
     }
   
     if (oppScore.score >= 10) {
