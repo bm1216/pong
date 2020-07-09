@@ -3,7 +3,7 @@ doubleButton = document.getElementById('double')
 canvas = document.getElementById('pong');
 const framePerSecond = 60
 const userPaddleMoveLength = 6;
-var oppPaddleMoveLength = 3;
+var oppPaddleMoveLength = 6;
 var ctx = canvas.getContext('2d');
 var useAI = false;
 var hasGameEnded = false;
@@ -74,6 +74,7 @@ function useSinglePlayer() {
   doubleButton.style.display = "none"
   canvas.style.display = "block"
   useAI = true
+  oppPaddleMoveLength = 3;
   setEventListeners()
   myGame = setInterval(play, 1000/framePerSecond)
 
@@ -83,6 +84,7 @@ function useDoublePlayer() {
   singleButton.style.display = "none"
   doubleButton.style.display = "none"
   canvas.style.display = "block"
+  oppPaddleMoveLength = 6;
   setEventListeners()
   myGame = setInterval(play, 1000/framePerSecond)
 }
@@ -225,7 +227,6 @@ function movePaddle() {
     }    
   }
 
-  // console.log(opUp)sw
   if (opUp) {
     if (op.y > 0) {
       op.y = op.y - oppPaddleMoveLength
